@@ -8,10 +8,6 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-func filePath() string {
-	return "form.html"
-}
-
 func makeNode(selector string) chromedvtools.ChromeDvToolsNode {
 	return chromedvtools.ChromeDvToolsNode{
 		Driver:   driver,
@@ -38,7 +34,7 @@ func getAllNode(t *testing.T, selector string) []customDriver.NodeFinder {
 }
 
 func TestTextContent(t *testing.T) {
-	BeforeEach(t, filePath())
+	BeforeEach(t, server.FORM_PAGE)
 
 	tests := []struct {
 		sel string
@@ -62,7 +58,7 @@ func TestTextContent(t *testing.T) {
 }
 
 func TestAll(t *testing.T) {
-	BeforeEach(t, filePath())
+	BeforeEach(t, server.FORM_PAGE)
 
 	tests := []struct {
 		sel string

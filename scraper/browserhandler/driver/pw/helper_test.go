@@ -3,6 +3,7 @@ package pw_test
 import (
 	"log"
 	"os"
+	"scraper/browserhandler"
 	"testing"
 
 	"github.com/playwright-community/playwright-go"
@@ -14,7 +15,7 @@ var browser playwright.Browser
 var context playwright.BrowserContext
 var page playwright.Page
 var expect playwright.PlaywrightAssertions
-var server *testServer
+var server *browserhandler.TestServer
 
 var DEFAULT_CONTEXT_OPTIONS = playwright.BrowserNewContextOptions{
 	AcceptDownloads: playwright.Bool(true),
@@ -41,11 +42,11 @@ func BeforeAll() {
 		log.Fatalf("could not launch: %v", err)
 	}
 	expect = playwright.NewPlaywrightAssertions(1000)
-	server = newTestServer()
+	server = browserhandler.NewTestServer("../tests/assets")
 }
 
 func AfterAll() {
-	server.testServer.Close()
+	server.TestServer.Close()
 	if err := pwInstance.Stop(); err != nil {
 		log.Fatalf("could not stop Playwright: %v", err)
 	}

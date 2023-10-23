@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path"
+	"scraper/browserhandler"
 	"scraper/browserhandler/driver/chromedvtools"
 	"sync"
 	"testing"
@@ -16,9 +16,8 @@ import (
 
 var (
 	// these are set up in init
-	execPath    string
-	testdataDir string
-	allocOpts   = chromedp.DefaultExecAllocatorOptions[:]
+	execPath  string
+	allocOpts = chromedp.DefaultExecAllocatorOptions[:]
 
 	// allocCtx is initialised in TestMain, to cancel before exiting.
 	allocCtx context.Context
@@ -28,14 +27,20 @@ var (
 	allocateOnce sync.Once
 	allocTempDir string
 	browserOpts  []chromedp.ContextOption
+	server       *browserhandler.TestServer
 )
 
+func BeforeAll() {
+
+}
+
+func AfterAll() {
+	server.TestServer.Close()
+}
+
 func init() {
-	wd, err := os.Getwd()
-	if err != nil {
-		panic(fmt.Sprintf("could not get working directory: %v", err))
-	}
-	testdataDir = "file://" + path.Join(wd, "testdata")
+	server = browserhandler.NewTestServer("../tests/assets")
+	var err error
 
 	allocTempDir, err = os.MkdirTemp("", "chromedp-test")
 	if err != nil {
@@ -81,7 +86,7 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func testAllocate(tb testing.TB, name string) (context.Context, context.CancelFunc) {
+func testAllocate(tb testing.TB, url string) (context.Context, context.CancelFunc) {
 	// Start the browser exactly once, as needed.
 	allocateOnce.Do(func() { browserCtx, _ = testAllocateSeparate(tb) })
 
@@ -96,7 +101,7 @@ func testAllocate(tb testing.TB, name string) (context.Context, context.CancelFu
 
 	// Only navigate if we want an HTML file name, otherwise leave the blank page.
 	if name != "" {
-		if err := chromedp.Run(ctx, chromedp.Navigate(testdataDir+"/"+name)); err != nil {
+		if err := chromedp.Run(ctx, chromedp.Navigate(url)); err != nil {
 			tb.Fatal(err)
 		}
 	}
@@ -133,11 +138,11 @@ func testAllocateSeparate(tb testing.TB) (context.Context, context.CancelFunc) {
 var driver chromedvtools.ChromeDvToolsDriver
 var cancel context.CancelFunc
 
-func BeforeEach(t *testing.T, filePath string) {
+func BeforeEach(t *testing.T, url string) {
 	t.Parallel()
 
 	var ctx context.Context
-	ctx, cancel = testAllocate(t, filePath)
+	ctx, cancel = testAllocate(t, url)
 	driver = chromedvtools.ChromeDvToolsDriver{
 		ExecContext: allocCtx,
 		Context:     ctx,
