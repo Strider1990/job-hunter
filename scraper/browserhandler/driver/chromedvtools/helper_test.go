@@ -100,7 +100,7 @@ func testAllocate(tb testing.TB, url string) (context.Context, context.CancelFun
 	ctx, _ := chromedp.NewContext(browserCtx)
 
 	// Only navigate if we want an HTML file name, otherwise leave the blank page.
-	if name != "" {
+	if url != "" {
 		if err := chromedp.Run(ctx, chromedp.Navigate(url)); err != nil {
 			tb.Fatal(err)
 		}
